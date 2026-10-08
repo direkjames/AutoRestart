@@ -1,0 +1,140 @@
+# ============================================================
+#  AutoRestart configuration
+#  Text uses MiniMessage: https://docs.advntr.dev/minimessage/format.html
+#  Placeholders in messages: <time>, <reason>, <player>, <date>, <prefix>
+#  Times accept: 300 (seconds), 5m, 1h30m, 1:30 (hours:minutes)
+# ============================================================
+
+# Any timezone ID, e.g. Asia/Manila, Europe/London, America/New_York
+timezone: "Asia/Manila"
+
+# Format: Day;HH;MM  (24-hour). Day = Monday..Sunday or Daily.
+# Examples: "Monday;23;00", "Friday;02;00", "Daily;12;00"
+schedules:
+  - "Daily;06;00"
+  - "Daily;18;00"
+
+# Also restart every X of uptime (e.g. "6h"). Leave empty to turn off.
+interval: ""
+
+# Never restart until the server has been up this long. Keep this above 60s on
+# Pterodactyl so Wings doesn't treat a quick stop as a crash loop.
+min-uptime: "10m"
+
+# How the "next restart" date is shown (Java DateTimeFormatter pattern).
+date-format: "EEE, MMM d 'at' h:mm a"
+
+# ------------------------------------------------------------
+#  Countdown warnings
+#  Key = how long before the restart. Every field is optional;
+#  leave a field out (or empty) to skip it.
+# ------------------------------------------------------------
+warnings:
+  "30m":
+    chat: "<prefix><yellow>The server will restart in <gold><time></gold>."
+    sound: "block.note_block.pling"
+  "10m":
+    chat: "<prefix><yellow>The server will restart in <gold><time></gold>."
+    sound: "block.note_block.pling"
+  "5m":
+    chat: "<prefix><gold>The server will restart in <red><time></red>."
+    sound: "block.note_block.pling"
+  "1m":
+    chat: "<prefix><red>The server will restart in <time>! Find a safe spot."
+    title: "<red>Restarting soon"
+    subtitle: "<gray>in <white><time>"
+    sound: "block.note_block.bell"
+  "30s":
+    chat: "<prefix><red>Restarting in <time>!"
+    actionbar: "<red>Restarting in <time>"
+    sound: "block.note_block.bell"
+  "10s":
+    title: "<red><time>"
+    subtitle: "<gray>until restart"
+    sound: "block.note_block.hat"
+  "5s":
+    title: "<red><time>"
+    sound: "block.note_block.hat"
+  "4s":
+    title: "<red><time>"
+    sound: "block.note_block.hat"
+  "3s":
+    title: "<red><time>"
+    sound: "block.note_block.hat"
+  "2s":
+    title: "<red><time>"
+    sound: "block.note_block.hat"
+  "1s":
+    title: "<dark_red><time>"
+    sound: "entity.experience_orb.pickup"
+
+# Volume and pitch used for every warning sound
+sound-volume: 1.0
+sound-pitch: 1.0
+
+# Boss bar shown during the last part of the countdown
+bossbar:
+  enabled: true
+  show-at: "2m"
+  text: "<red>Server restarting in <white><time>"
+  color: RED            # PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+  overlay: PROGRESS     # PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12, NOTCHED_20
+
+# ------------------------------------------------------------
+#  The restart itself
+# ------------------------------------------------------------
+restart:
+  # Console commands run right before shutdown (e.g. "save-all")
+  commands: []
+  # Shown to players when they are kicked
+  kick-message: "<red><bold>Server restarting</bold></red>\n<gray>We'll be back in a minute!"
+
+# ------------------------------------------------------------
+#  Discord webhook (Server Settings > Integrations > Webhooks)
+# ------------------------------------------------------------
+discord:
+  enabled: false
+  url: ""
+  username: "AutoRestart"
+  avatar-url: ""
+  # Send a "restart soon" announcement at these points of the countdown
+  announce-at: ["10m", "1m"]
+  # Plain text. Placeholders: {time}, {reason}, {player}, {date}
+  messages:
+    warning: ":warning: The server will restart in **{time}**."
+    now: ":rotating_light: **{player}** scheduled a restart in **{time}**. Reason: {reason}"
+    delayed: ":hourglass: **{player}** delayed the restart by **{time}**. Reason: {reason}"
+    cancelled: ":x: **{player}** cancelled the upcoming restart. Reason: {reason}"
+    restarting: ":arrows_counterclockwise: The server is restarting now."
+  # Embed side colors (hex)
+  colors:
+    warning: "#F1C40F"
+    now: "#E67E22"
+    delayed: "#3498DB"
+    cancelled: "#95A5A6"
+    restarting: "#E74C3C"
+
+# ------------------------------------------------------------
+#  Messages
+# ------------------------------------------------------------
+messages:
+  prefix: "<dark_gray>[<gold>AutoRestart</gold>]</dark_gray> "
+  no-reason: "No reason given"
+  time: "<prefix><gray>Next restart in <gold><time></gold> <dark_gray>(<date>)</dark_gray>"
+  time-with-reason: "<prefix><gray>Next restart in <gold><time></gold> <dark_gray>(<date>)</dark_gray> <gray>- <white><reason>"
+  no-restart: "<prefix><gray>No restart is scheduled."
+  invalid-time: "<prefix><red><reason>"
+  reloaded: "<prefix><green>Configuration reloaded."
+  reload-failed: "<prefix><red>Reload failed: <reason>. Check the console."
+  # Broadcast to everyone. Set to "" to stay quiet.
+  broadcast-now: "<prefix><red>A restart has been scheduled in <gold><time></gold>. <gray>Reason: <white><reason>"
+  broadcast-delayed: "<prefix><yellow>The restart has been delayed by <gold><time></gold>. <gray>Reason: <white><reason>"
+  broadcast-cancelled: "<prefix><green>The upcoming restart was cancelled. <gray>Reason: <white><reason>"
+  # Sent only to staff with autorestart.notify
+  staff-delayed: "<prefix><gray><player> delayed the restart by <time>. New restart: <date>"
+  staff-now: "<prefix><gray><player> set a restart in <time> (<date>)."
+  staff-cancelled: "<prefix><gray><player> cancelled the restart. Next restart: <date>"
+  # Feedback to the person who ran the command
+  done-now: "<prefix><green>Restart set for <gold><time></gold> from now."
+  done-delayed: "<prefix><green>Restart delayed. It is now in <gold><time></gold>."
+  done-cancelled: "<prefix><green>Restart cancelled."

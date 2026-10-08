@@ -1,0 +1,34 @@
+name: AutoRestart
+version: '${version}'
+main: dev.autorestart.AutoRestartPlugin
+api-version: '26.1'
+description: Restarts the server on a schedule with countdown warnings.
+softdepend: [PlaceholderAPI]
+
+# Commands are registered with Paper's Brigadier API in code, so none are listed here.
+
+permissions:
+  autorestart.admin:
+    description: All AutoRestart admin commands.
+    default: op
+    children:
+      autorestart.admin.now: true
+      autorestart.admin.delay: true
+      autorestart.admin.cancel: true
+      autorestart.admin.reload: true
+      autorestart.notify: true
+  autorestart.admin.now:
+    description: Use /autorestart now
+    default: op
+  autorestart.admin.delay:
+    description: Use /autorestart delay
+    default: op
+  autorestart.admin.cancel:
+    description: Use /autorestart cancel
+    default: op
+  autorestart.admin.reload:
+    description: Use /autorestart reload
+    default: op
+  autorestart.notify:
+    description: Get told when staff change the restart.
+    default: op
