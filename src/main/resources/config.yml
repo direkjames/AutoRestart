@@ -84,10 +84,28 @@ bossbar:
 #  The restart itself
 # ------------------------------------------------------------
 restart:
+  # shutdown    = stop the server; Pterodactyl starts it again (the console shows it as a crash)
+  # pterodactyl = ask the panel to restart it, like pressing the Restart button (fill in the section below)
+  method: shutdown
   # Console commands run right before shutdown (e.g. "save-all")
   commands: []
   # Shown to players when they are kicked
   kick-message: "<red><bold>Server restarting</bold></red>\n<gray>We'll be back in a minute!"
+
+# ------------------------------------------------------------
+#  Pterodactyl panel (used when restart.method is pterodactyl)
+# ------------------------------------------------------------
+pterodactyl:
+  # Your panel's address, e.g. https://panel.example.com
+  panel-url: ""
+  # Leave empty to detect it automatically. Otherwise use the 8-character ID
+  # from the server's panel URL (https://panel.example.com/server/abcd1234).
+  server-id: ""
+  # Client API key from Account → API Credentials (starts with ptlc_).
+  # Keep this file private: the key can control every server your account can.
+  api-key: ""
+  # If the panel hasn't stopped the server after this long, shut down normally instead.
+  fallback-after: "1m"
 
 # ------------------------------------------------------------
 #  Discord webhook (Server Settings > Integrations > Webhooks)
