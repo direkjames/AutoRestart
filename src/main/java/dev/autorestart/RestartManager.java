@@ -261,36 +261,8 @@ public final class RestartManager {
             player.kick(kick);
         }
 
-        if (settings.restartMethod == Settings.RestartMethod.PTERODACTYL) {
-            restartThroughPanel(settings.pterodactyl);
-        } else {
-            // Pterodactyl (Wings) sees the process exit and starts the server again.
-            Bukkit.shutdown();
-        }
-    }
-
-    /**
-     * Asks the panel to restart us. The panel sends the stop command, which shuts Paper down normally
-     * (saving everything), then starts the server again. If the request fails, or the panel never
-     * stops us, we shut down ourselves so the server isn't left running with everyone kicked.
-     */
-    private void restartThroughPanel(Settings.Pterodactyl panel) {
-        plugin.getLogger().info("Asking the Pterodactyl panel to restart the server...");
-        plugin.pterodactyl().restart(panel.panelUrl(), panel.serverId(), panel.apiKey())
-                .thenAccept(error -> Bukkit.getScheduler().runTask(plugin, () -> {
-                    if (error != null) {
-                        plugin.getLogger().warning("Panel restart failed: " + error + ". Shutting down normally instead.");
-                        Bukkit.shutdown();
-                        return;
-                    }
-                    plugin.getLogger().info("Panel accepted the restart. Waiting for it to stop the server.");
-                    long ticks = Math.max(20L, panel.fallbackAfter().toSeconds() * 20L);
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                        plugin.getLogger().warning("The panel hasn't stopped the server after "
-                                + TimeParser.format(panel.fallbackAfter()) + ". Shutting down normally.");
-                        Bukkit.shutdown();
-                    }, ticks);
-                }));
+        // Pterodactyl (Wings) sees the process exit and starts the server again.
+        Bukkit.shutdown();
     }
 
     private String reasonOrDefault() {

@@ -3,7 +3,6 @@ package dev.autorestart;
 import dev.autorestart.command.AutoRestartCommand;
 import dev.autorestart.hook.AutoRestartExpansion;
 import dev.autorestart.hook.DiscordWebhook;
-import dev.autorestart.hook.PterodactylClient;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -12,7 +11,6 @@ public final class AutoRestartPlugin extends JavaPlugin {
     private Settings settings;
     private Messenger messenger;
     private DiscordWebhook discord;
-    private final PterodactylClient pterodactyl = new PterodactylClient();
     private RestartManager restartManager;
 
     @Override
@@ -57,10 +55,6 @@ public final class AutoRestartPlugin extends JavaPlugin {
 
     public DiscordWebhook discord() {
         return discord;
-    }
-
-    public PterodactylClient pterodactyl() {
-        return pterodactyl;
     }
 
     public RestartManager restartManager() {

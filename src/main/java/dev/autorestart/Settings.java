@@ -29,11 +29,6 @@ public final class Settings {
                           List<Long> announceAt, Map<String, String> messages, Map<String, Integer> colors) {
     }
 
-    public enum RestartMethod { SHUTDOWN, PTERODACTYL }
-
-    /** @param fallbackAfter shut down normally if the panel hasn't stopped the server after this long */
-    public record Pterodactyl(String panelUrl, String serverId, String apiKey, Duration fallbackAfter) {
-    }
 
     public final ZoneId zone;
     public final ScheduleCalculator calculator;
@@ -50,8 +45,6 @@ public final class Settings {
 
     public final List<String> restartCommands;
     public final String kickMessage;
-    public final RestartMethod restartMethod;
-    public final Pterodactyl pterodactyl;
 
     public final Discord discord;
     private final ConfigurationSection messages;
@@ -131,34 +124,6 @@ public final class Settings {
         // Restart
         restartCommands = List.copyOf(config.getStringList("restart.commands"));
         kickMessage = config.getString("restart.kick-message", "<red>Server restarting");
-
-        // Pterodactyl
-        String panelUrl = config.getString("pterodactyl.panel-url", "").trim();
-        String serverId = config.getString("pterodactyl.server-id", "").trim();
-        if (serverId.isEmpty()) {
-            // Pterodactyl passes the server's UUID into the container, so this is usually automatic.
-            String fromEnv = System.getenv("P_SERVER_UUID");
-            serverId = fromEnv == null ? "" : fromEnv.trim();
-        }
-        String apiKey = config.getString("pterodactyl.api-key", "").trim();
-        Duration fallback = optionalDuration(config.getString("pterodactyl.fallback-after", "1m"),
-                "pterodactyl.fallback-after", logger);
-        pterodactyl = new Pterodactyl(panelUrl, serverId, apiKey, fallback == null ? Duration.ofMinutes(1) : fallback);
-
-        RestartMethod method = parseEnum(RestartMethod.class, config.getString("restart.method"),
-                RestartMethod.SHUTDOWN, logger);
-        if (method == RestartMethod.PTERODACTYL) {
-            List<String> missing = new ArrayList<>();
-            if (panelUrl.isEmpty()) missing.add("panel-url");
-            if (serverId.isEmpty()) missing.add("server-id (not set, and P_SERVER_UUID isn't available)");
-            if (apiKey.isEmpty()) missing.add("api-key");
-            if (!missing.isEmpty()) {
-                logger.warning("restart.method is pterodactyl but pterodactyl." + String.join(", ", missing)
-                        + " is missing. Falling back to a normal shutdown.");
-                method = RestartMethod.SHUTDOWN;
-            }
-        }
-        restartMethod = method;
 
         // Discord
         List<Long> announceAt = new ArrayList<>();

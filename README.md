@@ -21,40 +21,20 @@ and time parsing.
 
 ## Pterodactyl setup
 
-There are two restart methods (`restart.method`). Both save everything before stopping.
+A plugin can only stop the server; something else has to start it again. On Pterodactyl, Wings does that:
+by default it treats a clean stop that wasn't triggered from the panel as a crash and starts the server back up.
 
-### `pterodactyl` (recommended)
+The console will say **"Detected server process in a crashed state!" with exit code 0**. That's expected and
+safe: the plugin does a normal Paper shutdown (the same as typing `stop`), which saves all worlds and player
+data first. A real crash shows a Java stack trace or a non-zero exit code.
 
-The plugin asks the panel to restart the server, the same as pressing the Restart button. The panel shows a
-normal restart.
+Two things to keep in mind:
 
-1. In the panel: **Account → API Credentials → Create API Key**. Copy the key (starts with `ptlc_`).
-   Use an account that has power permission on this server.
-2. In `config.yml`:
-   ```yaml
-   restart:
-     method: pterodactyl
-   pterodactyl:
-     panel-url: "https://panel.example.com"
-     server-id: ""          # empty = detected automatically
-     api-key: "ptlc_..."
-     fallback-after: "1m"
-   ```
-3. `/ar reload`, then test with `/ar now 10s test`.
+1. Leave crash detection on for the server (it's on by default).
+2. Wings won't auto-restart if the previous "crash" was less than 60 seconds ago. That's why `min-uptime`
+   defaults to `10m`. Don't set it below `2m`.
 
-`server-id` is filled in automatically from the `P_SERVER_UUID` variable Pterodactyl gives every server.
-If that doesn't work, use the 8-character ID from the server's URL in the panel (`/server/abcd1234`).
-
-If the panel can't be reached or rejects the key, the plugin logs why and does a normal shutdown instead.
-It does the same if the panel accepts the request but hasn't stopped the server after `fallback-after`.
-
-Keep `config.yml` private: the API key can control every server your panel account can.
-
-### `shutdown`
-
-The plugin stops the server and Wings starts it again. Wings labels this a crash in the console because the
-stop didn't come from the panel, but it is a normal, clean shutdown. Keep crash detection on, and keep
-`min-uptime` above `2m`: Wings won't auto-start a server that "crashed" less than 60 seconds ago.
+Test it once: run `/autorestart now 10s test` and watch the console come back up in the panel.
 
 ## Schedules
 
@@ -142,5 +122,5 @@ src/main/java/dev/autorestart/
   Messenger.java              MiniMessage rendering and broadcasts
   command/                    /autorestart (Brigadier)
   core/                       schedule + time logic (no Paper code, unit tested)
-  hook/                       PlaceholderAPI, Discord webhook, Pterodactyl panel API
+  hook/                       PlaceholderAPI expansion, Discord webhook
 ```
