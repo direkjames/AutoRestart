@@ -30,9 +30,12 @@ public final class RestartManager {
     private final AutoRestartPlugin plugin;
     private final Instant startedAt = Instant.now();
 
-    private Instant target;
-    private Source source = Source.SCHEDULE;
-    private String reason;
+    // Read by PlaceholderAPI, which other plugins may call off the main thread
+    private volatile Instant target;
+    private volatile Source source = Source.SCHEDULE;
+    private volatile String reason;
+    /** When a scheduled restart gets delayed it becomes manual; this remembers the time it was originally set for. */
+    private Instant delayedFrom;
     /** After a cancel, scheduled restarts at or before this moment are skipped. */
     private Instant skipUntil;
 
@@ -80,6 +83,7 @@ public final class RestartManager {
     /** @return false if there was no restart to delay */
     public boolean delay(Duration by, String reason) {
         if (target == null) return false;
+        if (source == Source.SCHEDULE) delayedFrom = target;
         target = target.plus(by);
         source = Source.MANUAL;
         this.reason = reason;
@@ -90,7 +94,10 @@ public final class RestartManager {
     /** Skip the pending restart. The next one comes from the schedule. @return false if nothing was pending */
     public boolean cancel() {
         if (target == null) return false;
-        skipUntil = target;
+        // Only skip schedules that this restart stands for. A manual restart placed later than a scheduled
+        // one must not swallow that earlier scheduled restart when it is cancelled.
+        Instant skip = source == Source.SCHEDULE ? target : delayedFrom;
+        if (skip != null && (skipUntil == null || skip.isAfter(skipUntil))) skipUntil = skip;
         recalculateFromSchedule();
         return true;
     }
@@ -102,8 +109,9 @@ public final class RestartManager {
     }
 
     public Optional<Duration> remaining() {
-        if (target == null) return Optional.empty();
-        Duration left = Duration.between(Instant.now(), target);
+        Instant t = target;
+        if (t == null) return Optional.empty();
+        Duration left = Duration.between(Instant.now(), t);
         return Optional.of(left.isNegative() ? Duration.ZERO : left);
     }
 
@@ -126,6 +134,7 @@ public final class RestartManager {
         target = settings.calculator.next(Instant.now(), startedAt, skipUntil).orElse(null);
         source = Source.SCHEDULE;
         reason = null;
+        delayedFrom = null;
         resetTrackers();
         if (target != null) {
             plugin.getLogger().info("Next restart: " + formatDate(target)

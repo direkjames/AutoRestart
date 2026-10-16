@@ -39,6 +39,15 @@ class TimeParserTest {
     }
 
     @Test
+    void rejectsOverflowAndHugeValues() {
+        assertThrows(IllegalArgumentException.class, () -> TimeParser.parse("99999999999999999999"));
+        assertThrows(IllegalArgumentException.class, () -> TimeParser.parse("9999999999999d"));
+        assertThrows(IllegalArgumentException.class, () -> TimeParser.parse("106751991167300d"));
+        assertThrows(IllegalArgumentException.class, () -> TimeParser.parse("366d"));
+        assertEquals(Duration.ofDays(365), TimeParser.parse("365d"));
+    }
+
+    @Test
     void formats() {
         assertEquals("10s", TimeParser.format(Duration.ofSeconds(10)));
         assertEquals("4m 30s", TimeParser.format(Duration.ofSeconds(270)));

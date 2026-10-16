@@ -112,6 +112,12 @@ It posts when a restart is coming (`announce-at`), when staff use `now`/`delay`/
 restarts. Messages are under `discord.messages` with `{time}`, `{reason}`, `{player}`, `{date}`.
 Mentions such as `@everyone` in a reason are not pinged.
 
+## Changes in 1.0.1
+
+- Cancelling a manual restart no longer skips an earlier scheduled one; cancelling a delayed scheduled restart skips that scheduled restart.
+- Times are capped at 365 days; absurd values give a clean error instead of an exception.
+- A broken `config.yml` is reported on reload instead of silently using the shipped defaults.
+
 ## Project layout
 
 ```

@@ -17,6 +17,9 @@ import java.util.regex.Pattern;
  */
 public final class TimeParser {
 
+    /** Longest time a command or config value may use. Keeps date math far from overflow. */
+    public static final Duration MAX = Duration.ofDays(365);
+
     private static final Pattern PLAIN_SECONDS = Pattern.compile("\\d+");
     private static final Pattern HOURS_MINUTES = Pattern.compile("(\\d+):(\\d{1,2})");
     private static final Pattern UNIT_PART = Pattern.compile("(\\d+)\\s*([dhms])");
@@ -30,6 +33,15 @@ public final class TimeParser {
      * @throws IllegalArgumentException if the input isn't a valid, positive duration
      */
     public static Duration parse(String input) {
+        try {
+            return parseUnchecked(input);
+        } catch (ArithmeticException | java.time.DateTimeException e) {
+            // Absurdly large numbers overflow Duration/Instant math
+            throw new IllegalArgumentException("Time is too long (max " + format(MAX) + ")");
+        }
+    }
+
+    private static Duration parseUnchecked(String input) {
         if (input == null || input.isBlank()) {
             throw new IllegalArgumentException("Time is empty");
         }
@@ -37,7 +49,7 @@ public final class TimeParser {
 
         Duration result;
         if (PLAIN_SECONDS.matcher(text).matches()) {
-            result = Duration.ofSeconds(Long.parseLong(text));
+            result = Duration.ofSeconds(parseNumber(text, input));
         } else {
             Matcher hm = HOURS_MINUTES.matcher(text);
             if (hm.matches()) {
@@ -45,12 +57,12 @@ public final class TimeParser {
                 if (minutes > 59) {
                     throw new IllegalArgumentException("Minutes must be 0-59 in '" + input + "'");
                 }
-                result = Duration.ofHours(Long.parseLong(hm.group(1))).plusMinutes(minutes);
+                result = Duration.ofHours(parseNumber(hm.group(1), input)).plusMinutes(minutes);
             } else if (UNIT_FULL.matcher(text).matches()) {
                 result = Duration.ZERO;
                 Matcher part = UNIT_PART.matcher(text);
                 while (part.find()) {
-                    long amount = Long.parseLong(part.group(1));
+                    long amount = parseNumber(part.group(1), input);
                     result = switch (part.group(2)) {
                         case "d" -> result.plusDays(amount);
                         case "h" -> result.plusHours(amount);
@@ -66,7 +78,18 @@ public final class TimeParser {
         if (result.isZero() || result.isNegative()) {
             throw new IllegalArgumentException("Time must be greater than 0");
         }
+        if (result.compareTo(MAX) > 0) {
+            throw new IllegalArgumentException("Time is too long (max " + format(MAX) + ")");
+        }
         return result;
+    }
+
+    private static long parseNumber(String digits, String input) {
+        try {
+            return Long.parseLong(digits);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Time is too long (max " + format(MAX) + ")");
+        }
     }
 
     /** Formats a duration as e.g. {@code 1h 5m}, {@code 4m 30s} or {@code 10s}. */
